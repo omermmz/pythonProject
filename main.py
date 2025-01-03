@@ -7,12 +7,20 @@ from email.mime.text import MIMEText
 from dotenv import load_dotenv
 import uvicorn
 import os
-
+from fastapi.middleware.cors import CORSMiddleware
 # .env dosyasını yükleme
 load_dotenv()
 
 # FastAPI uygulaması
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # İzin verilen kaynaklar
+    allow_credentials=True,
+    allow_methods=["*"],  # İzin verilen HTTP yöntemleri
+    allow_headers=["*"],  # İzin verilen başlıklar
+)
 
 # Redis bağlantısı
 redis_client = redis.StrictRedis(
@@ -105,8 +113,9 @@ def check_email_password_in_file(email: str, password: str):
 
 
 # OTP Generate Endpoint
-@app.post("/generate-otp/")
+@app.post("/generate-otp")
 def generate_otp_endpoint(request: EmailRequest):
+    print(request)
     otp = generate_otp()
     redis_key = f"otp:{request.email}"
     redis_client.setex(redis_key, OTP_VALIDITY_PERIOD, otp)
